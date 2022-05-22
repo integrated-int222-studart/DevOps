@@ -1,11 +1,13 @@
-version: "3.1"
+version: "3.8"
 services:
-  studart-reverse-proxy-ssl:
+  annms-reverse-proxy-ssl:
     image: nginx:1.17.10
-    container_name: studart-reverse-proxy-ssl
+    container_name: annms-reverse-proxy-ssl
     ports:
       - 80:80
       - 443:443
+    env_file:
+      - ./.env
     volumes:
       - ./html_doc:/var/www/html_doc
       - ./certbot/conf:/etc/letsencrypt
@@ -14,16 +16,16 @@ services:
     restart: always
     command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
 
-  studart-certbot:
+  annms-certbot:
     image: certbot/certbot
-    container_name: studart-certbot
+    container_name: annms-certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     restart: unless-stopped
     entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
     depends_on:
-      - studart-reverse-proxy-ssl
+      - annms-reverse-proxy-ssl
 networks:
   default:
-    name: studart-network
+    name: annms-network
